@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>18_browser01</title>
+    <style>
+      .callout {
+        border: solid 1px #ff0080;
+        margin: 2px 4px;
+        padding: 2px 6px;
+      }
+
+      .code {
+        background: #ccc;
+        margin: 1px 2px;
+        padding: 1px 4px;
+        font-family: monospace;
+      }
+
+      .highlight {
+        background: #ff0;
+        font-size: italic;
+      }
+    </style>
+  </head>
+
+  <body>
+    <header>
+      <h1>Simple HTML</h1>
+    </header>
+    <div id="content">
+      <p>This is a <i>simple</i> HTML file.</p>
+      <div class="callout">
+        <p>This is as fancy as we'll get!</p>
+      </div>
+      <p>
+        IDs (such as <span class="code">#content</span> ) are unique (there can
+        only be one per page).
+      </p>
+      <p>
+        Classes (such as <span class="code">.callout</span> ) can be used on
+        many elements.
+      </p>
+      <div id="callout2" class="callout fancy">
+        <p>A single HTML element can have multiple classes.</p>
+      </div>
+      <div>
+        <button data-action="highlight" data-containing="unique">
+          Highlight paragraphs containing "unique"
+        </button>
+        <button data-action="removeHighlights">
+          Remove highlights
+        </button>
+      </div>
+      <div class="serverInfo">
+        Server is running on <span data-replace="platform">???</span> with Node
+        <span data-replace="nodeVersion">???</span>. It has been up for
+        <span data-replace="uptime">???</span> seconds.
+      </div>
+    </div>
+    <script>
+      function printDOM(node, prefix) {
+        console.log(prefix + node.nodeName);
+        for (let i = 0; i < node.childNodes.length; i++) {
+          printDOM(node.childNodes[i], prefix + "\t");
+        }
+      }
+      printDOM(document, "");
+
+      document.getElementById("content");
+      document.getElementsByClassName("callout");
+      document.getElementsByTagName("p");
+
+      const para1 = document.getElementsByTagName("p")[0];
+      console.log(para1.textContent);
+      console.log(para1.innerHTML);
+      para1.textContent = "Modified HTML file";
+      para1.innerHTML = "Modified HTML file";
+
+      const p1 = document.createElement("p");
+      const p2 = document.createElement("p");
+      p1.textContent = "I was created dynamically!";
+      p2.textContent = "I was also created dynamically!";
+
+      const parent = document.getElementById("content");
+      const firstChild = parent.childNodes[0];
+      console.log(firstChild);
+      parent.insertBefore(p1, firstChild);
+      parent.appendChild(p2);
+
+      function highlightParas(containing) {
+        if (typeof containing == "string")
+          containing = new RegExp(`\\b${containing}\\b`, "i");
+        const paras = document.getElementsByTagName("p");
+        console.log(paras);
+        for (let p of paras) {
+          if (!containing.test(p.textContent)) continue;
+          p.classList.add("highlight");
+        }
+      }
+      highlightParas("unique");
+
+      function removeParaHighlights() {
+        const paras = document.querySelectorAll("p.highlight");
+        for (let p of paras) {
+          p.classList.remove("highlight");
+        }
+      }
+      removeParaHighlights();
+
+      const highlightActions = document.querySelectorAll(
+        '[data-action="highlight"]'
+      );
+      console.log(highlightActions);
+      console.log(highlightActions[0].dataset);
+      // DOMStringMap { containing: "unique", action: "highlight"};
+      // highlightActions[0].dataset.containing = "giraffe";
+      // highlightActions[0].dataset.caseSensitive = "true";
+      console.log(highlightActions[0].dataset);
+
+      const highlightActions1 = document.querySelectorAll(
+        '[data-action="highlight"]'
+      );
+      for (let a of highlightActions1) {
+        a.addEventListener("click", evt => {
+          evt.preventDefault();
+          highlightParas(a.dataset.containing);
+        });
+      }
+
+      const removeHighlightActions = document.querySelectorAll(
+        '[data-action="removeHighlights"]'
+      );
+      for (let a of removeHighlightActions) {
+        a.addEventListener("click", evt => {
+          evt.preventDefault();
+          removeParaHighlights();
+        });
+      }
+    </script>
+    <script>
+      function refreshServerInfo() {
+        const req = new XMLHttpRequest();
+        req.addEventListener("load", function() {
+          // TODO: 값을 HTML에 삽입하는 것은 나중에 함
+          console.log(this.responseText);
+
+          // this.responseText는 JSON이 들어있는 문자열
+          // JSON.parse를 써서 문자열을 객체로 바꿈
+          const data = JSON.parse(this.responseText);
+
+          // 이 예제에서는 클래스가 serverInfo인 <div>의 텍스트만 교체합니다.
+          const serverInfo = document.querySelector(".serverInfo");
+
+          // 서버에서 반환한 객체를 키 기준으로 순회
+          Object.keys(data).forEach(p => {
+            // 텍스트를 교체할 요소를 찾는다.
+            const replacements = serverInfo.querySelectorAll(
+              `[data-replace="${p}"]`
+            );
+            // 서버에서 받은 값으로 텍스트를 교체
+            for (let r of replacements) {
+              r.textContent = data[p];
+            }
+          });
+        });
+        req.open("GET", "http://localhost:7070", true);
+        req.send();
+      }
+      refreshServerInfo();
+      setInterval(refreshServerInfo, 200);
+    </script>
+  </body>
+</html>
