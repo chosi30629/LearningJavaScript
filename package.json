@@ -13,7 +13,7 @@
     "math-money": "^0.1.1",
     "moment-timezone": "^0.5.23",
     "money-math": "^2.5.1",
-    "underscore": "^1.9.1"
+    "underscore": "^1.12.1"
   },
   "devDependencies": {
     "@babel/core": "^7.2.2",
