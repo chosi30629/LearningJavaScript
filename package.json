@@ -11,7 +11,7 @@
   "dependencies": {
     "core-js": "^2.6.3",
     "math-money": "^0.1.1",
-    "moment-timezone": "^0.5.23",
+    "moment-timezone": "^0.5.35",
     "money-math": "^2.5.1",
     "underscore": "^1.9.1"
   },
